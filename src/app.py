@@ -15,7 +15,7 @@ lr_model = joblib.load('../models/logistic_regression.pkl')
 svm_model = joblib.load('../models/svm_model.pkl')
 knn_model = joblib.load('../models/knn_model.pkl')
 
-# Load the saved selected columns
+# Load the saved selected columns (these are the columns used during training)
 selected_columns = joblib.load('../models/selected_columns.pkl')
 
 # Define the categorical columns
