@@ -45,9 +45,6 @@ if __name__ == '__main__':
     train_data, test_data = load_data('../datasets/NSL_KDD_Train.csv', '../datasets/NSL_KDD_Test.csv')
     X_train, X_test, y_train, y_test, scaler = preprocess_data(train_data, test_data, label_column='label')
 
-    # You do not need to apply pd.get_dummies() here since it's already done in preprocess_data
-    # Proceed directly to feature selection
-
     # Feature selection using SelectKBest
     selector = SelectKBest(score_func=chi2, k=10)
     X_train_selected = selector.fit_transform(X_train, y_train)
