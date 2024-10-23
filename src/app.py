@@ -1,57 +1,60 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
-import logging 
+import logging
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-# Load the saved models and preprocessor
-selector = joblib.load('../models/feature_selector.pkl')
+# Load pre-trained models and feature scaler
 scaler = joblib.load('../models/scaler.pkl')
+columns = joblib.load('../models/columns.pkl')  # The columns used during training
 lr_model = joblib.load('../models/logistic_regression.pkl')
 svm_model = joblib.load('../models/svm_model.pkl')
 knn_model = joblib.load('../models/knn_model.pkl')
-selected_columns = joblib.load('../models/selected_columns.pkl')
-
-# Define the categorical columns for one-hot encoding
-categorical_columns = ['protocol_type', 'service', 'flag']
 
 def align_features(df, reference_columns):
-    df_encoded = pd.get_dummies(df, columns=categorical_columns)
+    """Align input DataFrame columns to match the trained model columns."""
+    # df_encoded = pd.get_dummies(df, columns=['protocol_type', 'service', 'flag'])
     df_aligned = df_encoded.reindex(columns=reference_columns, fill_value=0)
     return df_aligned
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        # Receive JSON data
         data = request.json
+        logging.debug(f"Received input data: {data}")
+
+        # Convert JSON data to DataFrame
         df = pd.DataFrame(data)
         
-        # Align the input data columns with the training data columns
-        df_aligned = align_features(df, selected_columns)
+        # Align the input data to the training data columns
+        df_aligned = df.reindex(columns=columns, fill_value=0)
+        logging.debug(f"Aligned DataFrame columns: {df_aligned.columns}")
 
-        # Apply feature selection
-        X_selected = selector.transform(df_aligned)
-
-        # Normalize the features
-        X_scaled = scaler.transform(X_selected)
-
-        # Make predictions with each model
+         # Feature selection
+        # X = selector.transform(df_aligned)
+        
+        # Scale the input data
+        X_scaled = scaler.transform(df_aligned)
+        
+        # Make predictions
         lr_pred = lr_model.predict(X_scaled)[0]
         svm_pred = svm_model.predict(X_scaled)[0]
         knn_pred = knn_model.predict(X_scaled)[0]
-
-        # Return predictions
+        
+        # Return predictions in JSON format
         return jsonify({
-            'Logistic Regression': int(lr_pred),
-            'SVM': int(svm_pred),
-            'KNN': int(knn_pred)
+            'Logistic Regression': lr_pred,
+            'SVM': svm_pred,
+            'KNN': knn_pred
         })
 
     except Exception as e:
-        logging.debug(f"Error During Prediction: {e}")
-        return jsonify({'error': str(e)})
+        # Log the exception
+        logging.debug(f"Error during prediction: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
