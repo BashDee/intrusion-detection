@@ -1,4 +1,9 @@
 # ENHANCED INTRUSION DETECTION SYSTEMS WITH MACHINE LEARNING TECHNIQUES FOR IMPROVED CYBERSECURITY
+## Clone the projcect
+clone the project using
+$git clone https://github.com/BashDee/intrusion-detection.git
+
+or download the project from the repo (https://github.com/BashDee/intrusion-detection.git)
 
 ## Model - To train the model used 
 python src/model_training.py
